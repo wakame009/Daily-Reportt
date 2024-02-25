@@ -140,10 +140,11 @@ public class EmployeeController {
         }
 
         return "redirect:/employees";
-}
+    }
+
     @GetMapping(value = "/{code}/update")
     public String update(@PathVariable String code, Model model) {
         model.addAttribute("employee", employeeService.findByCode(code));
         return "employees/update";
-    }   
+    }
 }

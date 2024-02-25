@@ -23,6 +23,7 @@ public class Employee {
 
     public static enum Role {
         GENERAL("一般"), ADMIN("管理者");
+        
 
         private String name;
 
