@@ -20,7 +20,7 @@
                 <div class="col-xl-12">
                     <div class="card">
                         <div class="card-body">
-                            <form th:action="@{/employees/{code}/update(code=${employee.code})}" th:object="${employee}" th:method="post">
+                            <form th:action="@{'/employees/' + ${employee.code} + '/update'}" th:object="${employee}" th:method="post">
                                 <div class="wizard wizard-success mb-4">
                                     <div class="mb-3">
                                         <label class="form-label" for="code">社員番号</label>
@@ -30,16 +30,17 @@
                                         <label class="form-label" for="name">氏名</label>
                                         <p class="mb-1"></p>
                                         <div class="col-md-7">
-                                            <input class="form-control" type="text" th:field="*{name}" th:errorclass="err" id="name">
-                                            <span th:errors="*{name}" class="text-danger"></span>
+                                            <input class="form-control" type="text" th:field="*{name}" th:errorclass="${#fields.hasErrors('name')} ? 'err' : ''" id="name">
+                                            <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger"></span>
                                         </div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="password">パスワード</label>
                                         <p class="mb-1"></p>
                                         <div class="col-md-7">
-                                            <input class="form-control" type="password" th:field="*{password}" th:errorclass="err" id="password">
-                                            <span th:if="${passwordError} neq null" th:text="${passwordError}" class="text-danger"></span>
+                                            <input class="form-control" type="password" th:field="*{password}" th:errorclass="${#fields.hasErrors('password')} ? 'err' : ''" id="password">
+                                            <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger"></span>
+                                            <span th:if="${passwordError}" th:text="${passwordError}" class="text-danger"></span>
                                         </div>
                                     </div>
                                     <div class="mb-3">
@@ -47,8 +48,7 @@
                                         <p class="mb-1"></p>
                                         <div class="col-md-4">
                                             <select class="form-select" th:field="*{role}" id="role">
-                                                <option value="一般" th:selected="${employee.role == '一般'}">一般</option>
-                                                <option value="管理者" th:selected="${employee.role == '管理者'}">管理者</option>
+                                                <option th:each="role : ${roles}" th:value="${role}" th:selected="${role == employee.role}" th:text="${role}">Role</option>
                                             </select>
                                         </div>
                                     </div>

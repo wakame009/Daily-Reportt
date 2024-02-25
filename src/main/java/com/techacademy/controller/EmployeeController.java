@@ -1,5 +1,7 @@
 package com.techacademy.controller;
 
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -112,11 +114,36 @@ public class EmployeeController {
 
         return "redirect:/employees";
     }
-// 従業員更新画面
+ // 従業員更新処理
+    @PostMapping(value = "/{code}/update")
+    public String update(@PathVariable String code, @Validated Employee employee, BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            return "employees/update";
+        }
+
+        try {
+            // パスワードが空の場合はDBの値をそのまま使う
+            if ("".equals(employee.getPassword())) {
+                Employee existingEmployee = employeeService.findByCode(code);
+                employee.setPassword(existingEmployee.getPassword());
+            }
+            
+            // 更新日時を現在日時に設定
+            employee.setUpdatedAt(LocalDateTime.now());
+            
+            // 更新処理
+            employeeService.update(employee);
+        } catch (DataIntegrityViolationException e) {
+            model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.DUPLICATE_EXCEPTION_ERROR),
+                ErrorMessage.getErrorValue(ErrorKinds.DUPLICATE_EXCEPTION_ERROR));
+            return "employees/update";
+        }
+
+        return "redirect:/employees";
+}
     @GetMapping(value = "/{code}/update")
     public String update(@PathVariable String code, Model model) {
         model.addAttribute("employee", employeeService.findByCode(code));
         return "employees/update";
-    }
-
+    }   
 }

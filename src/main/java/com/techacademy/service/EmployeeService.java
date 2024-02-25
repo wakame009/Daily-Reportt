@@ -119,4 +119,9 @@ public class EmployeeService {
         return passwordLength < 8 || 16 < passwordLength;
     }
 
+    public void update(Employee employee) {
+        // TODO 自動生成されたメソッド・スタブ
+        
+    }
+
 }
