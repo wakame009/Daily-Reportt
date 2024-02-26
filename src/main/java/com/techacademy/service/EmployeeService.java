@@ -127,16 +127,27 @@ public class EmployeeService {
         
     }
     public ErrorKinds update(Employee employee) {
+        // DBから従業員情報を取得
+        Employee existingEmployee = findByCode(employee.getCode());
+        if (existingEmployee == null) {
+            return ErrorKinds.CHECK_OK;
+        }
+
         // 名前が入力されていない場合はエラーを返す
         if (StringUtils.isEmpty(employee.getName())) {
             return ErrorKinds.CHECK_OK;
         }
 
+        // 画面から入力した内容で更新
+        existingEmployee.setName(employee.getName());
+        existingEmployee.setPassword(employee.getPassword());
+        existingEmployee.setRole(employee.getRole());
+        
         // 更新日時を更新
-        employee.setUpdatedAt(LocalDateTime.now());
+        existingEmployee.setUpdatedAt(LocalDateTime.now());
 
         // 保存
-        employeeRepository.save(employee);
+        employeeRepository.save(existingEmployee);
 
         return ErrorKinds.SUCCESS;
     }
