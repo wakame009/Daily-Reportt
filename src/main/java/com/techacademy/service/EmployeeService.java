@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import com.techacademy.constants.ErrorKinds;
 import com.techacademy.entity.Employee;
 import com.techacademy.repository.EmployeeRepository;
+
+import io.micrometer.common.util.StringUtils;
+
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -119,9 +122,22 @@ public class EmployeeService {
         return passwordLength < 8 || 16 < passwordLength;
     }
 
-    public void update(Employee employee) {
+    public void update1(Employee employee) {
         // TODO 自動生成されたメソッド・スタブ
         
     }
+    public ErrorKinds update(Employee employee) {
+        // 名前が入力されていない場合はエラーを返す
+        if (StringUtils.isEmpty(employee.getName())) {
+            return ErrorKinds.CHECK_OK;
+        }
 
+        // 更新日時を更新
+        employee.setUpdatedAt(LocalDateTime.now());
+
+        // 保存
+        employeeRepository.save(employee);
+
+        return ErrorKinds.SUCCESS;
+    }
 }
