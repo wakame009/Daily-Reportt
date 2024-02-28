@@ -71,9 +71,7 @@ public class EmployeeController {
             // パスワードが空白だった場合
             model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.BLANK_ERROR),
                     ErrorMessage.getErrorValue(ErrorKinds.BLANK_ERROR));
-
             return create(employee);
-
         }
 
         // 入力チェック
@@ -85,7 +83,6 @@ public class EmployeeController {
         // (findByIdでは削除フラグがTRUEのデータが取得出来ないため)
         try {
             ErrorKinds result = employeeService.save(employee);
-
             if (ErrorMessage.contains(result)) {
                 model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
                 return create(employee);
@@ -114,25 +111,46 @@ public class EmployeeController {
 
         return "redirect:/employees";
     }
- // 従業員更新処理
+    
+    // 従業員更新画面
+    @GetMapping(value = "/{code}/update")
+    public String update(@PathVariable String code, Model model) {
+        
+        model.addAttribute("employee", employeeService.findByCode(code));
+        
+        return "employees/update";
+    }
+    
+    // 従業員更新処理
     @PostMapping(value = "/{code}/update")
-    public String update(@PathVariable String code, @Validated Employee employee, BindingResult result, Model model) {
+    public String updateEmployee(@PathVariable String code, @Validated Employee employee, BindingResult result, Model model) {
+        
+        // パスワードが空の場合はDBの値をそのまま使う
+        if ("".equals(employee.getPassword())) {
+            Employee existingEmployee = employeeService.findByCode(code);
+            employee.setPassword(existingEmployee.getPassword());
+        }
+        
+        // パスワード仕様のチェック
+        ErrorKinds employeePasswordCheck = employeeService.employeePasswordCheck(employee);
+        if (ErrorMessage.contains(employeePasswordCheck)) {
+            model.addAttribute(ErrorMessage.getErrorName(employeePasswordCheck), ErrorMessage.getErrorValue(employeePasswordCheck));
+            return update(code, model);
+        }
+        
+        // 入力チェック
         if (result.hasErrors()) {
             return "employees/update";
-        }
-
+        }        
+        
         try {
-            // パスワードが空の場合はDBの値をそのまま使う
-            if ("".equals(employee.getPassword())) {
-                Employee existingEmployee = employeeService.findByCode(code);
-                employee.setPassword(existingEmployee.getPassword());
-            }
             
             // 更新日時を現在日時に設定
             employee.setUpdatedAt(LocalDateTime.now());
             
             // 更新処理
             employeeService.update(employee);
+            
         } catch (DataIntegrityViolationException e) {
             model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.DUPLICATE_EXCEPTION_ERROR),
                 ErrorMessage.getErrorValue(ErrorKinds.DUPLICATE_EXCEPTION_ERROR));
@@ -142,9 +160,4 @@ public class EmployeeController {
         return "redirect:/employees";
     }
 
-    @GetMapping(value = "/{code}/update")
-    public String update(@PathVariable String code, Model model) {
-        model.addAttribute("employee", employeeService.findByCode(code));
-        return "employees/update";
-    }
 }

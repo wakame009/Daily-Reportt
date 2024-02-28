@@ -54,6 +54,41 @@ public class EmployeeService {
         employeeRepository.save(employee);
         return ErrorKinds.SUCCESS;
     }
+    
+    // 従業員更新
+    @Transactional
+    public ErrorKinds update(Employee employee) {
+        
+        // DBから従業員情報を取得
+        Employee existingEmployee = findByCode(employee.getCode());
+        if (existingEmployee == null) {
+            return ErrorKinds.INPUT_ERROR;
+        }
+
+        // 名前が入力されていない場合はエラーを返す
+        if (StringUtils.isEmpty(employee.getName())) {
+            return ErrorKinds.INPUT_ERROR;
+        }
+
+        // パスワードチェック
+        ErrorKinds result = employeePasswordCheck(employee);
+        if (ErrorKinds.CHECK_OK != result) {
+            return ErrorKinds.INPUT_ERROR;
+        }
+
+        // 画面から入力した内容で更新
+        existingEmployee.setName(employee.getName());
+        existingEmployee.setPassword(employee.getPassword());
+        existingEmployee.setRole(employee.getRole());
+        
+        // 更新日時を更新
+        existingEmployee.setUpdatedAt(LocalDateTime.now());
+
+        // 保存
+        employeeRepository.save(existingEmployee);
+
+        return ErrorKinds.SUCCESS;
+    }
 
     // 従業員削除
     @Transactional
@@ -78,28 +113,29 @@ public class EmployeeService {
 
     // 1件を検索
     public Employee findByCode(String code) {
+        
         // findByIdで検索
         Optional<Employee> option = employeeRepository.findById(code);
+        
         // 取得できなかった場合はnullを返す
         Employee employee = option.orElse(null);
+        
         return employee;
     }
 
     // 従業員パスワードチェック
-    private ErrorKinds employeePasswordCheck(Employee employee) {
+    public ErrorKinds employeePasswordCheck(Employee employee) {
 
         // 従業員パスワードの半角英数字チェック処理
         if (isHalfSizeCheckError(employee)) {
-
             return ErrorKinds.HALFSIZE_ERROR;
         }
 
         // 従業員パスワードの8文字～16文字チェック処理
         if (isOutOfRangePassword(employee)) {
-
             return ErrorKinds.RANGECHECK_ERROR;
         }
-
+        
         employee.setPassword(passwordEncoder.encode(employee.getPassword()));
 
         return ErrorKinds.CHECK_OK;
@@ -107,48 +143,23 @@ public class EmployeeService {
 
     // 従業員パスワードの半角英数字チェック処理
     private boolean isHalfSizeCheckError(Employee employee) {
-
+        
         // 半角英数字チェック
         Pattern pattern = Pattern.compile("^[A-Za-z0-9]+$");
         Matcher matcher = pattern.matcher(employee.getPassword());
+        
         return !matcher.matches();
     }
 
     // 従業員パスワードの8文字～16文字チェック処理
-    public boolean isOutOfRangePassword(Employee employee) {
-
+    // true: 文字数制限が仕様になっていない
+    // false: 文字数制限が仕様
+    private boolean isOutOfRangePassword(Employee employee) {
+        
         // 桁数チェック
         int passwordLength = employee.getPassword().length();
+        
         return passwordLength < 8 || 16 < passwordLength;
     }
 
-    public void update1(Employee employee) {
-        // TODO 自動生成されたメソッド・スタブ
-        
-    }
-    public ErrorKinds update(Employee employee) {
-        // DBから従業員情報を取得
-        Employee existingEmployee = findByCode(employee.getCode());
-        if (existingEmployee == null) {
-            return ErrorKinds.CHECK_OK;
-        }
-
-        // 名前が入力されていない場合はエラーを返す
-        if (StringUtils.isEmpty(employee.getName())) {
-            return ErrorKinds.CHECK_OK;
-        }
-
-        // 画面から入力した内容で更新
-        existingEmployee.setName(employee.getName());
-        existingEmployee.setPassword(employee.getPassword());
-        existingEmployee.setRole(employee.getRole());
-        
-        // 更新日時を更新
-        existingEmployee.setUpdatedAt(LocalDateTime.now());
-
-        // 保存
-        employeeRepository.save(existingEmployee);
-
-        return ErrorKinds.SUCCESS;
-    }
 }

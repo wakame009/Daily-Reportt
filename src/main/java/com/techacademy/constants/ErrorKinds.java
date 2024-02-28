@@ -21,6 +21,16 @@ public enum ErrorKinds {
     // チェックOK
     CHECK_OK,
     // 正常終了
-    SUCCESS;
+    SUCCESS,
 
+    // 追加されたエラーコード
+    // パスワードの桁数チェックエラー
+    PASSWORD_LENGTH_ERROR,
+    // パスワードの半角英数字チェックエラー
+    PASSWORD_HALFSIZE_ERROR,
+    // 入力エラー
+    INPUT_ERROR,
+    // 新しく追加されたエラーコード
+    PASSWORD_FORMAT_ERROR
+    
 }
