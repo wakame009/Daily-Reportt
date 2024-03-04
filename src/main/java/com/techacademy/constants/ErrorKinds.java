@@ -31,6 +31,10 @@ public enum ErrorKinds {
     // 入力エラー
     INPUT_ERROR,
     // 新しく追加されたエラーコード
-    PASSWORD_FORMAT_ERROR
+    PASSWORD_FORMAT_ERROR,
+    // [日報] タイトル文字数エラー 
+    TITLE_LENGTH_ERROR,
+    // [日報] 内容文字数エラー
+    CONTENT_LENGTH_ERROR
     
 }

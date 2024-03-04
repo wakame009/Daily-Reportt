@@ -7,6 +7,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +25,7 @@ public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
-
+    
     @Autowired
     public EmployeeService(EmployeeRepository employeeRepository, PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
@@ -110,7 +112,25 @@ public class EmployeeService {
     public List<Employee> findAll() {
         return employeeRepository.findAll();
     }
-
+    
+    // 現在ログインしている従業員情報の返却
+    public String getLoggedInEmployeeName() {
+        
+        // 現在の従業員の詳細を取得
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        
+        // 従業員の識別子を取得
+        String code = userDetails.getUsername();
+        
+        // DBからfindByIdで検索
+        Optional<Employee> option = employeeRepository.findById(code);
+        
+        // 取得できなかった場合はnullを返す
+        Employee employee = option.orElse(null);
+        
+        return employee.getName();
+    }
+    
     // 1件を検索
     public Employee findByCode(String code) {
         

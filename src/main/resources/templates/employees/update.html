@@ -36,17 +36,6 @@
                                             <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger"></span>
                                         </div>
                                     </div>
-                                <!--
-                                    <div class="mb-3">
-                                        <label class="form-label" for="password">パスワード</label>
-                                        <p class="mb-1"></p>
-                                        <div class="col-md-7">
-                                            <input class="form-control" type="password" th:field="*{password}" th:errorclass="${#fields.hasErrors('password')} ? 'err' : ''" id="password">
-                                            <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger"></span>
-                                            <span th:if="${#fields.hasErrors('password')}" class="text-danger">パスワードは8文字以上16文字以下の半角英数字で入力してください</span>
-                                        </div>
-                                    </div>
-                                -->
                                     <div class="mb-3">
                                         <label class="form-label" for="password">パスワード</label>
                                         <p class="mb-1"></p>
