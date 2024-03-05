@@ -18,6 +18,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 
 import lombok.Data;
+import lombok.ToString;
 
 
 @Data
@@ -76,6 +77,7 @@ public class Employee {
     
     // リレーション
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+    @ToString.Exclude
     private List<Report> reportList;
 
 }

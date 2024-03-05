@@ -16,7 +16,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
@@ -24,12 +23,11 @@ import lombok.Data;
 @Table(name = "reports")
 @SQLRestriction("delete_flg = false")
 public class Report {
-
+    
     // ID
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, updatable = false)
-    @NotNull
     private Long id;
     
     // 日付
@@ -50,19 +48,31 @@ public class Report {
     // 社員番号
     @ManyToOne
     @JoinColumn(name = "employee_code", referencedColumnName = "code", nullable = false)
-    @NotNull
     private Employee employee;
+    
+    // 社員番号を取得するメソッド
+    public String getEmployeeCode() {
+        if (employee != null) {
+            return employee.getCode();
+        } else {
+            return null;
+        }
+    }
+    
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
+    }
     
     // 削除フラグ(論理削除を行うため)
     @Column(columnDefinition="TINYINT", nullable = false)
     private boolean deleteFlg;
-
+    
     // 登録日時
     @Column(nullable = false)
     private LocalDateTime createdAt;
     
     // 更新日時
     @Column(nullable = false)
-    private LocalDateTime updatedAt;    
+    private LocalDateTime updatedAt;
 
 }

@@ -44,11 +44,6 @@ public class ReportService {
         // 文字数制限のチェック
         reportTextSizeCheck(report);
         
-        // 従業員番号重複チェック
-//        if (findByCode(employee.getCode()) != null) {
-//            return ErrorKinds.DUPLICATE_ERROR;
-//        }
-        
         // 論理削除のデフォルト値を設定
         report.setDeleteFlg(false);
         
@@ -65,40 +60,39 @@ public class ReportService {
     }
     
     // [日報] 更新
-    // 後で
-//    @Transactional
-//    public ErrorKinds update(Report report) {
-//        
+    @Transactional
+    public ErrorKinds update(Report report) {
+        
 //        // DBから従業員情報を取得
 //        Employee existingReport = findByCode(report.getCode());
 //        if (existingReport == null) {
 //            return ErrorKinds.INPUT_ERROR;
 //        }
-//
-////        // 名前が入力されていない場合はエラーを返す
-////        if (StringUtils.isEmpty(report.getName())) {
-////            return ErrorKinds.INPUT_ERROR;
-////        }
-//
-////        // パスワードチェック
-////        ErrorKinds result = employeePasswordCheck(employee);
-////        if (ErrorKinds.CHECK_OK != result) {
-////            return ErrorKinds.INPUT_ERROR;
-////        }
-//
-//        // 画面から入力した内容で更新
+
+//        // 名前が入力されていない場合はエラーを返す
+//        if (StringUtils.isEmpty(report.getName())) {
+//            return ErrorKinds.INPUT_ERROR;
+//        }
+
+//        // パスワードチェック
+//        ErrorKinds result = employeePasswordCheck(employee);
+//        if (ErrorKinds.CHECK_OK != result) {
+//            return ErrorKinds.INPUT_ERROR;
+//        }
+
+        // 画面から入力した内容で更新
 //        existingReport.setName(report.getName());
-////        existingReport.setPassword(report.getPassword());
-////        existingReport.setRole(report.getRole());
-//        
-//        // 更新日時を更新
+//        existingReport.setPassword(report.getPassword());
+//        existingReport.setRole(report.getRole());
+        
+        // 更新日時を更新
 //        existingReport.setUpdatedAt(LocalDateTime.now());
-//
-//        // 保存
+
+        // 保存
 //        reportRepository.save(existingReport);
-//
-//        return ErrorKinds.SUCCESS;
-//    }
+
+        return ErrorKinds.SUCCESS;
+    }
 
     // [日報] 削除
     @Transactional

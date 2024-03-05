@@ -73,7 +73,7 @@ public class EmployeeController {
                     ErrorMessage.getErrorValue(ErrorKinds.BLANK_ERROR));
             return create(employee);
         }
-
+        
         // 入力チェック
         if (res.hasErrors()) {
             return create(employee);

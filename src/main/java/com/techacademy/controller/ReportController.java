@@ -65,9 +65,13 @@ public class ReportController {
     @GetMapping(value = "/add")
     public String create(@ModelAttribute Report report, Model model) {
         
-        // ログイン中の授業員名を取得してモデルに追加
-        String loggedInEmployeeName = employeeService.getLoggedInEmployeeName();
-        model.addAttribute("employeeName", loggedInEmployeeName);
+        // ログイン中の従業員情報を取得してモデルに追加        
+        Employee loggedInEmployeeInfo = employeeService.getLoggedInEmployeeInfo();
+        model.addAttribute("employeeInfo", loggedInEmployeeInfo);
+        
+        // 新規作成する日報オブジェクトを作成し、従業員情報をセット
+        report.setEmployee(loggedInEmployeeInfo);
+        model.addAttribute("report", report);
         
         return "reports/new";
     }
@@ -75,9 +79,6 @@ public class ReportController {
     // [日報] 新規登録処理
     @PostMapping(value = "/add")
     public String add(@Validated Report report, BindingResult res, Model model) {
-        
-//        System.out.println("■■■■■■■■■■ controller POST add");
-//        System.out.println(report);
         
         // 空白をチェック
         if ("".equals(report.getTitle()) || ("".equals(report.getContent())) )  {
@@ -99,12 +100,14 @@ public class ReportController {
             return create(report, model);
         }
         
-        // 日報のユーザーコードを設定
-//        report.setEmployeeCode(report.getEmployee().getCode());
+        // 現在ログインしている従業員情報を取得
+        Employee loggedInEmployeeInfo = employeeService.getLoggedInEmployeeInfo();
+        // 取得した従業員情報をReportオブジェクトにセット
+        report.setEmployee(loggedInEmployeeInfo);
         
         // 新規日報の保存処理
         reportService.save(report);
-
+        
         return "redirect:/reports";
     }
 
@@ -134,43 +137,29 @@ public class ReportController {
     }
     
     // [日報] 更新処理
-    // 後で
-//    @PostMapping(value = "/{code}/update")
-//    public String updateReport(@PathVariable String code, @Validated Report report, BindingResult result, Model model) {
-//        
-////        // パスワードが空の場合はDBの値をそのまま使う
-////        if ("".equals(employee.getPassword())) {
-////            Employee existingEmployee = employeeService.findByCode(code);
-////            employee.setPassword(existingEmployee.getPassword());
-////        }
-////        
-////        // パスワード仕様のチェック
-////        ErrorKinds employeePasswordCheck = employeeService.employeePasswordCheck(employee);
-////        if (ErrorMessage.contains(employeePasswordCheck)) {
-////            model.addAttribute(ErrorMessage.getErrorName(employeePasswordCheck), ErrorMessage.getErrorValue(employeePasswordCheck));
-////            return update(code, model);
-////        }
-//        
-//        // 入力チェック
-//        if (result.hasErrors()) {
-//            return "reports/update";
-//        }        
-//        
-//        try {
-//            
-//            // 更新日時を現在日時に設定
-//            report.setUpdatedAt(LocalDateTime.now());
-//            
-//            // 更新処理
+    @PostMapping(value = "/{code}/update")
+    public String updateReport(@PathVariable String code, @Validated Report report, BindingResult result, Model model) {
+               
+        // 入力チェック
+        if (result.hasErrors()) {
+            return "reports/update";
+        }        
+        
+        try {
+            
+            // 更新日時を現在日時に設定
+            report.setUpdatedAt(LocalDateTime.now());
+            
+            // 更新処理
 //            reportService.update(report);
-//            
-//        } catch (DataIntegrityViolationException e) {
-//            model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.DUPLICATE_EXCEPTION_ERROR),
-//                ErrorMessage.getErrorValue(ErrorKinds.DUPLICATE_EXCEPTION_ERROR));
-//            return "reports/update";
-//        }
-//
-//        return "redirect:/reports";
-//    }
+            
+        } catch (DataIntegrityViolationException e) {
+            model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.DUPLICATE_EXCEPTION_ERROR),
+                ErrorMessage.getErrorValue(ErrorKinds.DUPLICATE_EXCEPTION_ERROR));
+            return "reports/update";
+        }
+
+        return "redirect:/reports";
+    }
 
 }

@@ -24,12 +24,12 @@
                                     <div class="mb-3">
                                         <label for="date">日付：</label>
                                         <p class="mb-1"></p>
-                                        <input type="date" id="date" name="日付" value="" />
+                                        <input type="date" id="reportDate" name="reportDate" th:field="*{reportDate}" />
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="name">氏名</label>
                                         <p class="mb-1"></p>
-                                        <div class="align-middle" th:text="${employeeName}"></div>
+                                        <div class="align-middle" th:if="${employeeInfo != null}" th:text="${employeeInfo.name}"></div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="title">タイトル</label>
