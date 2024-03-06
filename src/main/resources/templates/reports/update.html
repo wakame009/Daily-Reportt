@@ -26,8 +26,10 @@
                                     <div class="mb-3">
                                         <label for="date">日付：</label>
                                         <p class="mb-1"></p>
-                                        <!-- <input type="date" id="date" name="日付" th:value="${report.reportDate}" /> -->
-                                        <input type="date" id="date" name="日付" th:value="${report.reportDate}">
+                                        <input type="date" id="reportDate" name="reportDate" th:value="${report.reportDate}">
+                                        <div>
+                                            <span th:errors="*{reportDate}" class="text-danger"></span>
+                                        </div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="name">氏名</label>
@@ -39,15 +41,17 @@
                                         <p class="mb-1"></p>
                                         <div class="col-md-7">
                                             <input class="form-control" type="title" th:field="*{title}" id="title" name="title" th:value="${report.title}">
-                                            <span th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="text-danger" th:remove="tag"></span>
+                                            <span th:errors="*{title}" class="text-danger"></span>
+                                            <span class="text-danger" th:if="${titleLengthError}" th:text="${titleLengthError}"></span>
                                         </div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="content">内容</label>
                                         <p class="mb-1"></p>
                                         <div class="col-md-7">
-                                            <textarea class="form-control" rows="10" type="content" th:field="*{content}" id="content" name="content" th:value="${report.content}"></textarea>
-                                            <span th:if="${#fields.hasErrors('content')}" th:errors="*{content}" class="text-danger" th:remove="tag"></span>
+                                            <textarea class="form-control" rows="10" type="content" th:field="*{content}" id="content" name="content" th:value="${report.content}"></textarea> 
+                                            <span th:errors="*{content}" class="text-danger"></span>
+                                            <span class="text-danger" th:if="${contentLengthError}" th:text="${contentLengthError}"></span>
                                         </div>
                                     </div>
                                 </div>

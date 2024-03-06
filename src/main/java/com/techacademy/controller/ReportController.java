@@ -24,9 +24,6 @@ import com.techacademy.service.EmployeeService;
 import com.techacademy.service.ReportService;
 import com.techacademy.service.UserDetail;
 
-import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotEmpty;
-
 @Controller
 @RequestMapping("reports")
 public class ReportController {
@@ -53,7 +50,7 @@ public class ReportController {
     
     // [日報] 詳細画面
     @GetMapping(value = "/{id}/")
-    public String detail(@PathVariable String id, Model model) {
+    public String detail(@PathVariable Long id, Model model) {
         
         model.addAttribute("report", reportService.findByReportId(id));
         model.addAttribute("employee", employeeService.findByCode(reportService.getEmployeeCode(id)));
@@ -80,18 +77,25 @@ public class ReportController {
     @PostMapping(value = "/add")
     public String add(@Validated Report report, BindingResult res, Model model) {
         
-        // 空白をチェック
-        if ("".equals(report.getTitle()) || ("".equals(report.getContent())) )  {
-            // 空白だった場合
-            model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.BLANK_ERROR),
-                    ErrorMessage.getErrorValue(ErrorKinds.BLANK_ERROR));
-            return create(report, model);
-        }
+       // 日報の文字数チェック
+        ErrorKinds reportTitleSizeCheck = reportService.reportTitleSizeCheck(report);
+        ErrorKinds reportContentSizeCheck = reportService.reportContentSizeCheck(report);
         
-        // 日報の文字数チェック
-        ErrorKinds reportTextSizeCheck = reportService.reportTextSizeCheck(report);
-        if (ErrorMessage.contains(reportTextSizeCheck)) {
-            model.addAttribute(ErrorMessage.getErrorName(reportTextSizeCheck), ErrorMessage.getErrorValue(reportTextSizeCheck));
+        // 文字入力制限チェック
+        if ( report.getReportDate() == null || report.getTitle().isEmpty() || report.getContent().isEmpty() || ErrorMessage.contains(reportTitleSizeCheck) || ErrorMessage.contains(reportContentSizeCheck)) {
+
+            if (report.getReportDate() == null || report.getTitle().isEmpty() || report.getContent().isEmpty()) {
+                model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.REPORT_BLANK_ERROR), ErrorMessage.getErrorValue(ErrorKinds.REPORT_BLANK_ERROR));
+            }
+            
+            if (ErrorMessage.contains(reportTitleSizeCheck)) {
+                model.addAttribute(ErrorMessage.getErrorName(reportTitleSizeCheck), ErrorMessage.getErrorValue(reportTitleSizeCheck));
+            }
+            
+            if (ErrorMessage.contains(reportContentSizeCheck)) {
+                model.addAttribute(ErrorMessage.getErrorName(reportContentSizeCheck), ErrorMessage.getErrorValue(reportContentSizeCheck));
+            }
+            
             return create(report, model);
         }
         
@@ -113,22 +117,22 @@ public class ReportController {
 
     // [日報] 削除処理
     @PostMapping(value = "/{id}/delete")
-    public String delete(@PathVariable String id, @AuthenticationPrincipal UserDetail userDetail, Model model) {
-
+    public String delete(@PathVariable Long id, @AuthenticationPrincipal UserDetail userDetail, Model model) {
+        
         ErrorKinds result = reportService.delete(id, userDetail);
-
+        
         if (ErrorMessage.contains(result)) {
             model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
             model.addAttribute("report", reportService.findByReportId(id));
             return detail(id, model);
         }
-
+        
         return "redirect:/reports";
     }
     
     // [日報] 更新画面
     @GetMapping(value = "/{id}/update")
-    public String update(@PathVariable String id, Model model) {
+    public String update(@PathVariable Long id, Model model) {
         
         model.addAttribute("report", reportService.findByReportId(id));
         model.addAttribute("employee", employeeService.findByCode(reportService.getEmployeeCode(id)));
@@ -137,13 +141,40 @@ public class ReportController {
     }
     
     // [日報] 更新処理
-    @PostMapping(value = "/{code}/update")
-    public String updateReport(@PathVariable String code, @Validated Report report, BindingResult result, Model model) {
-               
+    @PostMapping(value = "/{id}/update")
+    public String updateReport(@PathVariable Long id, @Validated Report report, BindingResult result, Model model) {
+        
+     // 日報の文字数チェック
+        ErrorKinds reportTitleSizeCheck = reportService.reportTitleSizeCheck(report);
+        ErrorKinds reportContentSizeCheck = reportService.reportContentSizeCheck(report);
+        
+        // 文字入力制限チェック
+        if ( report.getReportDate() == null || report.getTitle().isEmpty() || report.getContent().isEmpty() || ErrorMessage.contains(reportTitleSizeCheck) || ErrorMessage.contains(reportContentSizeCheck)) {
+            
+            if (report.getReportDate() == null || report.getTitle().isEmpty() || report.getContent().isEmpty()) {
+                model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.REPORT_BLANK_ERROR), ErrorMessage.getErrorValue(ErrorKinds.REPORT_BLANK_ERROR));                
+            }
+            
+            if (ErrorMessage.contains(reportTitleSizeCheck)) {
+                model.addAttribute(ErrorMessage.getErrorName(reportTitleSizeCheck), ErrorMessage.getErrorValue(reportTitleSizeCheck));
+            }
+            
+            if (ErrorMessage.contains(reportContentSizeCheck)) {
+                model.addAttribute(ErrorMessage.getErrorName(reportContentSizeCheck), ErrorMessage.getErrorValue(reportContentSizeCheck));
+            }
+
+            return create(report, model);
+        }
+        
+        // Employee情報付与
+        /*   ログインしているユーザーではなく、日報のユーザーであること    */
+        model.addAttribute("employee", employeeService.findByCode(reportService.getEmployeeCode(id)));
+        report.setEmployee(employeeService.findByCode(reportService.getEmployeeCode(id)));
+        
         // 入力チェック
         if (result.hasErrors()) {
             return "reports/update";
-        }        
+        }
         
         try {
             
@@ -151,7 +182,7 @@ public class ReportController {
             report.setUpdatedAt(LocalDateTime.now());
             
             // 更新処理
-//            reportService.update(report);
+            reportService.update(report);
             
         } catch (DataIntegrityViolationException e) {
             model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.DUPLICATE_EXCEPTION_ERROR),
@@ -161,5 +192,5 @@ public class ReportController {
 
         return "redirect:/reports";
     }
-
+    
 }

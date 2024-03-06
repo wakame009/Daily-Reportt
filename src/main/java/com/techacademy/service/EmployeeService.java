@@ -35,25 +35,19 @@ public class EmployeeService {
     // 従業員保存
     @Transactional
     public ErrorKinds save(Employee employee) {
-
-        // パスワードチェック
-        ErrorKinds result = employeePasswordCheck(employee);
-        if (ErrorKinds.CHECK_OK != result) {
-            return result;
-        }
-
+        
         // 従業員番号重複チェック
         if (findByCode(employee.getCode()) != null) {
             return ErrorKinds.DUPLICATE_ERROR;
         }
-
+        
         employee.setDeleteFlg(false);
-
         LocalDateTime now = LocalDateTime.now();
         employee.setCreatedAt(now);
         employee.setUpdatedAt(now);
-
+        
         employeeRepository.save(employee);
+        
         return ErrorKinds.SUCCESS;
     }
     
@@ -66,18 +60,12 @@ public class EmployeeService {
         if (existingEmployee == null) {
             return ErrorKinds.INPUT_ERROR;
         }
-
+        
         // 名前が入力されていない場合はエラーを返す
         if (StringUtils.isEmpty(employee.getName())) {
             return ErrorKinds.INPUT_ERROR;
         }
-
-        // パスワードチェック
-        ErrorKinds result = employeePasswordCheck(employee);
-        if (ErrorKinds.CHECK_OK != result) {
-            return ErrorKinds.INPUT_ERROR;
-        }
-
+        
         // 画面から入力した内容で更新
         existingEmployee.setName(employee.getName());
         existingEmployee.setPassword(employee.getPassword());
@@ -85,7 +73,7 @@ public class EmployeeService {
         
         // 更新日時を更新
         existingEmployee.setUpdatedAt(LocalDateTime.now());
-
+        
         // 保存
         employeeRepository.save(existingEmployee);
 
@@ -155,12 +143,12 @@ public class EmployeeService {
 
     // 従業員パスワードチェック
     public ErrorKinds employeePasswordCheck(Employee employee) {
-
+        
         // 従業員パスワードの半角英数字チェック処理
         if (isHalfSizeCheckError(employee)) {
             return ErrorKinds.HALFSIZE_ERROR;
         }
-
+        
         // 従業員パスワードの8文字～16文字チェック処理
         if (isOutOfRangePassword(employee)) {
             return ErrorKinds.RANGECHECK_ERROR;

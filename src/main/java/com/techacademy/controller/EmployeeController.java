@@ -63,15 +63,19 @@ public class EmployeeController {
     public String add(@Validated Employee employee, BindingResult res, Model model) {
 
         // パスワード空白チェック
-        /*
-         * エンティティ側の入力チェックでも実装は行えるが、更新の方でパスワードが空白でもチェックエラーを出さずに
-         * 更新出来る仕様となっているため上記を考慮した場合に別でエラーメッセージを出す方法が簡単だと判断
-         */
-        if ("".equals(employee.getPassword())) {
+        if (employee.getPassword().isEmpty()) {
             // パスワードが空白だった場合
-            model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.BLANK_ERROR),
-                    ErrorMessage.getErrorValue(ErrorKinds.BLANK_ERROR));
+            model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.BLANK_ERROR), ErrorMessage.getErrorValue(ErrorKinds.BLANK_ERROR));
+            
             return create(employee);
+        } else {
+            // パスワード入力仕様のチェック
+            ErrorKinds employeePasswordCheck = employeeService.employeePasswordCheck(employee);
+            if (ErrorMessage.contains(employeePasswordCheck)) {
+                model.addAttribute(ErrorMessage.getErrorName(employeePasswordCheck), ErrorMessage.getErrorValue(employeePasswordCheck));
+                                
+                return create(employee);
+            }
         }
         
         // 入力チェック
@@ -125,26 +129,27 @@ public class EmployeeController {
     @PostMapping(value = "/{code}/update")
     public String updateEmployee(@PathVariable String code, @Validated Employee employee, BindingResult result, Model model) {
         
-        // パスワードが空の場合はDBの値をそのまま使う
-        if ("".equals(employee.getPassword())) {
+        // パスワードのチェック
+        /*    a. 空の場合はDBに設定済みの値を利用    */
+        /*    b. 設定された場合は入力値を暗号化      */
+        if (employee.getPassword().isEmpty()) {
             Employee existingEmployee = employeeService.findByCode(code);
             employee.setPassword(existingEmployee.getPassword());
-        }
-        
-        // パスワード仕様のチェック
-        ErrorKinds employeePasswordCheck = employeeService.employeePasswordCheck(employee);
-        if (ErrorMessage.contains(employeePasswordCheck)) {
-            model.addAttribute(ErrorMessage.getErrorName(employeePasswordCheck), ErrorMessage.getErrorValue(employeePasswordCheck));
-            return update(code, model);
+        } else {
+            ErrorKinds employeePasswordCheck = employeeService.employeePasswordCheck(employee);
+            if (ErrorMessage.contains(employeePasswordCheck)) {
+                model.addAttribute(ErrorMessage.getErrorName(employeePasswordCheck), ErrorMessage.getErrorValue(employeePasswordCheck));
+                
+                return update(code, model);
+            }
         }
         
         // 入力チェック
         if (result.hasErrors()) {
             return "employees/update";
-        }        
+        }
         
         try {
-            
             // 更新日時を現在日時に設定
             employee.setUpdatedAt(LocalDateTime.now());
             
