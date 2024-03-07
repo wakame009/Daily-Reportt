@@ -90,13 +90,23 @@ public class ReportController {
     @PostMapping(value = "/add")
     public String add(@Validated Report report, BindingResult res, Model model) {
         
+        // 現在ログインしている従業員情報を取得
+        Employee loggedInEmployeeInfo = employeeService.getLoggedInEmployeeInfo();
+        // 取得した従業員情報をReportオブジェクトにセット
+        report.setEmployee(loggedInEmployeeInfo);
+        
+        if (reportService.isReportDateExists(report.getReportDate(), loggedInEmployeeInfo, null)) {
+            model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.DATECHECK_ERROR), ErrorMessage.getErrorValue(ErrorKinds.DATECHECK_ERROR));
+            return create(report, model);
+        }
+        
         // 日報の文字数チェック
         ErrorKinds reportTitleSizeCheck = reportService.reportTitleSizeCheck(report);
         ErrorKinds reportContentSizeCheck = reportService.reportContentSizeCheck(report);
-        
+          
         // 文字入力制限チェック
         if ( report.getReportDate() == null || report.getTitle().isEmpty() || report.getContent().isEmpty() || ErrorMessage.contains(reportTitleSizeCheck) || ErrorMessage.contains(reportContentSizeCheck)) {
-
+          
             if (report.getReportDate() == null || report.getTitle().isEmpty() || report.getContent().isEmpty()) {
                 model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.REPORT_BLANK_ERROR), ErrorMessage.getErrorValue(ErrorKinds.REPORT_BLANK_ERROR));
             }
@@ -117,17 +127,12 @@ public class ReportController {
             return create(report, model);
         }
         
-        // 現在ログインしている従業員情報を取得
-        Employee loggedInEmployeeInfo = employeeService.getLoggedInEmployeeInfo();
-        // 取得した従業員情報をReportオブジェクトにセット
-        report.setEmployee(loggedInEmployeeInfo);
-        
         // 新規日報の保存処理
         reportService.save(report);
         
         return "redirect:/reports";
     }
-
+    
     // [日報] 削除処理
     @PostMapping(value = "/{id}/delete")
     public String delete(@PathVariable Long id, @AuthenticationPrincipal UserDetail userDetail, Model model, Principal principal) {
@@ -172,6 +177,23 @@ public class ReportController {
             return "error";
         }
         
+        // 現在ログインしている従業員情報を取得
+        Employee loggedInEmployeeInfo = employeeService.getLoggedInEmployeeInfo();
+        // 取得した従業員情報をReportオブジェクトにセット
+        report.setEmployee(loggedInEmployeeInfo);
+        
+        // 更新画面に戻る際には、必ずemployee情報をモデルに追加
+        model.addAttribute("employee", loggedInEmployeeInfo);
+        
+        if (reportService.isReportDateExists(report.getReportDate(), loggedInEmployeeInfo, id)) {
+            model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.DATECHECK_ERROR), ErrorMessage.getErrorValue(ErrorKinds.DATECHECK_ERROR));
+            
+            // 重複があった場合は更新画面に戻る。このとき、入力された値やエラーメッセージを保持
+            model.addAttribute("report", report);
+            
+            return "reports/update";
+        }
+        
         // 日報の文字数チェック
         ErrorKinds reportTitleSizeCheck = reportService.reportTitleSizeCheck(report);
         ErrorKinds reportContentSizeCheck = reportService.reportContentSizeCheck(report);
@@ -191,7 +213,10 @@ public class ReportController {
                 model.addAttribute(ErrorMessage.getErrorName(reportContentSizeCheck), ErrorMessage.getErrorValue(reportContentSizeCheck));
             }
 
-            return create(report, model);
+            // 重複があった場合は更新画面に戻る。このとき、入力された値やエラーメッセージを保持
+            model.addAttribute("report", report);
+            
+            return "reports/update";
         }
         
         // Employee情報付与

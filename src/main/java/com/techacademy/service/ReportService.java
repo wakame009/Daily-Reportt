@@ -1,5 +1,6 @@
 package com.techacademy.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -142,6 +143,30 @@ public class ReportService {
         }
         
         return ErrorKinds.CHECK_OK;
+    }
+    
+//    // 同日の日報重複チェック    
+//    public boolean isReportDateExists(LocalDate reportDate, Employee employee, Long excludedReportId) {
+//        List<Report> existingReports;
+//        if (excludedReportId == null) {
+//            existingReports = reportRepository.findByReportDateAndEmployeeAndDeleteFlgIsFalse(reportDate, employee);
+//        } else {
+//            existingReports = reportRepository.findByReportDateAndEmployeeAndDeleteFlgIsFalseAndIdNot(reportDate, employee, excludedReportId);
+//        }
+//        return !existingReports.isEmpty();
+//    }
+//    
+    // 同日の日報重複チェック (更新時に自身を除外)
+    public boolean isReportDateExists(LocalDate reportDate, Employee employee, Long excludedReportId) {
+        List<Report> existingReports;
+        if (excludedReportId == null) {
+            // 新規登録時のチェック
+            existingReports = reportRepository.findByReportDateAndEmployeeAndDeleteFlgIsFalse(reportDate, employee);
+        } else {
+            // 更新時のチェック（自身を除外）
+            existingReports = reportRepository.findByReportDateAndEmployeeAndDeleteFlgIsFalseAndIdNot(reportDate, employee, excludedReportId);
+        }
+        return !existingReports.isEmpty();
     }
 
 }

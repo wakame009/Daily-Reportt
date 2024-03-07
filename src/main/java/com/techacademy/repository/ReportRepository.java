@@ -1,5 +1,6 @@
 package com.techacademy.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,4 +14,9 @@ public interface ReportRepository extends JpaRepository<Report, String> {
     Optional<Report> findById(Long id);
 
     List<Report> findByEmployee(Employee currentUser);
+
+    List<Report> findByReportDateAndEmployeeAndDeleteFlgIsFalse(LocalDate reportDate, Employee employee);
+
+    List<Report> findByReportDateAndEmployeeAndDeleteFlgIsFalseAndIdNot(LocalDate reportDate, Employee employee, Long excludedReportId);
+
 }

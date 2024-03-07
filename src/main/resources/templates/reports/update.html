@@ -29,12 +29,13 @@
                                         <input type="date" id="reportDate" name="reportDate" th:value="${report.reportDate}">
                                         <div>
                                             <span th:errors="*{reportDate}" class="text-danger"></span>
+                                            <span class="text-danger" th:if="${reportDateError}" th:text="${reportDateError}"></span>
                                         </div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="name">氏名</label>
                                         <p class="mb-1"></p>
-                                        <div class="align-middle" th:text="${employee.name}"></div>
+                                        <div class="align-middle" th:text="${employee?.name ?: ''}"></div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="title">タイトル</label>
