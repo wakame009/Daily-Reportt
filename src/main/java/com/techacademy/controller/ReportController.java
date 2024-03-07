@@ -1,5 +1,6 @@
 package com.techacademy.controller;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +42,11 @@ public class ReportController {
     @GetMapping
     public String list(Model model) {
         
-        model.addAttribute("listSize", reportService.findAll().size());
-        model.addAttribute("reportList", reportService.findAll());
+        // ログイン中の従業員情報を取得してモデルに追加
+        Employee loggedInEmployeeInfo = employeeService.getLoggedInEmployeeInfo();
+        
+        model.addAttribute("listSize", reportService.findReportsByCurrentUser(loggedInEmployeeInfo).size());
+        model.addAttribute("reportList", reportService.findReportsByCurrentUser(loggedInEmployeeInfo));
         model.addAttribute("employeeList", employeeService.findAll());
         
         return "reports/list";
@@ -50,7 +54,16 @@ public class ReportController {
     
     // [日報] 詳細画面
     @GetMapping(value = "/{id}/")
-    public String detail(@PathVariable Long id, Model model) {
+    public String detail(@PathVariable Long id, Model model, Principal principal) {
+        
+        Report report = reportService.findByReportId(id);
+        String currentUsername = principal.getName(); 
+        
+        // レポートの所有者と現在のユーザーが異なる場合のチェック
+        if (!report.getEmployee().getCode().equals(currentUsername) && !employeeService.findByCode(currentUsername).getRole().equals(Employee.Role.ADMIN)) {
+            model.addAttribute("error", "アクセス権限がありません");
+            return "error";
+        }
         
         model.addAttribute("report", reportService.findByReportId(id));
         model.addAttribute("employee", employeeService.findByCode(reportService.getEmployeeCode(id)));
@@ -77,7 +90,7 @@ public class ReportController {
     @PostMapping(value = "/add")
     public String add(@Validated Report report, BindingResult res, Model model) {
         
-       // 日報の文字数チェック
+        // 日報の文字数チェック
         ErrorKinds reportTitleSizeCheck = reportService.reportTitleSizeCheck(report);
         ErrorKinds reportContentSizeCheck = reportService.reportContentSizeCheck(report);
         
@@ -117,14 +130,14 @@ public class ReportController {
 
     // [日報] 削除処理
     @PostMapping(value = "/{id}/delete")
-    public String delete(@PathVariable Long id, @AuthenticationPrincipal UserDetail userDetail, Model model) {
+    public String delete(@PathVariable Long id, @AuthenticationPrincipal UserDetail userDetail, Model model,  Principal principal) {
         
         ErrorKinds result = reportService.delete(id, userDetail);
         
         if (ErrorMessage.contains(result)) {
             model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
             model.addAttribute("report", reportService.findByReportId(id));
-            return detail(id, model);
+            return detail(id, model, principal);
         }
         
         return "redirect:/reports";
@@ -132,7 +145,16 @@ public class ReportController {
     
     // [日報] 更新画面
     @GetMapping(value = "/{id}/update")
-    public String update(@PathVariable Long id, Model model) {
+    public String update(@PathVariable Long id, Model model, Principal principal) {
+        
+        Report report = reportService.findByReportId(id);
+        String currentUsername = principal.getName(); 
+        
+        // レポートの所有者と現在のユーザーが異なる場合のチェック
+        if (!report.getEmployee().getCode().equals(currentUsername) && !employeeService.findByCode(currentUsername).getRole().equals(Employee.Role.ADMIN)) {
+            model.addAttribute("error", "アクセス権限がありません");
+            return "error";
+        }
         
         model.addAttribute("report", reportService.findByReportId(id));
         model.addAttribute("employee", employeeService.findByCode(reportService.getEmployeeCode(id)));
@@ -142,9 +164,15 @@ public class ReportController {
     
     // [日報] 更新処理
     @PostMapping(value = "/{id}/update")
-    public String updateReport(@PathVariable Long id, @Validated Report report, BindingResult result, Model model) {
+    public String updateReport(@PathVariable Long id, @Validated Report report, BindingResult result, @AuthenticationPrincipal UserDetail userDetail, Model model) {
         
-     // 日報の文字数チェック
+        // 権限チェック
+        if (!canUpdateReport(id, userDetail.getUsername())) {
+            model.addAttribute("error", "この操作には権限がありません。");
+            return "error";
+        }
+        
+        // 日報の文字数チェック
         ErrorKinds reportTitleSizeCheck = reportService.reportTitleSizeCheck(report);
         ErrorKinds reportContentSizeCheck = reportService.reportContentSizeCheck(report);
         
@@ -193,4 +221,17 @@ public class ReportController {
         return "redirect:/reports";
     }
     
+    public boolean canUpdateReport(@PathVariable Long id, @PathVariable String code) {
+        
+        Report report = reportService.findByReportId(id);
+        
+        if (report == null) {
+            return false;
+        }
+        
+        Employee loggedInEmployeeInfo = employeeService.getLoggedInEmployeeInfo();
+        
+        return loggedInEmployeeInfo.getCode().equals(code) || loggedInEmployeeInfo.getRole() == Employee.Role.ADMIN;
+    }
+
 }

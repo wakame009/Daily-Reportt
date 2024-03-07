@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.techacademy.constants.ErrorKinds;
+import com.techacademy.entity.Employee;
 import com.techacademy.entity.Report;
 import com.techacademy.repository.EmployeeRepository;
 import com.techacademy.repository.ReportRepository;
@@ -82,9 +83,20 @@ public class ReportService {
         return ErrorKinds.SUCCESS;
     }
 
-    // [日報] 一覧表示処理
-    public List<Report> findAll() {
-        return reportRepository.findAll();
+//    // [日報] 一覧表示処理
+//    public List<Report> findAll() {
+//        return reportRepository.findAll();
+//    }
+    
+    // 【日報】日報へのアクセス制御
+    public List<Report> findReportsByCurrentUser(Employee currentUser) {
+        if (currentUser.getRole() == Employee.Role.ADMIN) {
+            // 管理者権限の場合、すべての日報を返却
+            return reportRepository.findAll();
+        } else {
+            // 一般権限の場合、自分の日報のみ返却
+            return reportRepository.findByEmployee(currentUser);
+        }
     }
 
     // [日報] 1件を検索
