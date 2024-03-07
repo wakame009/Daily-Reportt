@@ -82,11 +82,6 @@ public class ReportService {
 
         return ErrorKinds.SUCCESS;
     }
-
-//    // [日報] 一覧表示処理
-//    public List<Report> findAll() {
-//        return reportRepository.findAll();
-//    }
     
     // 【日報】日報へのアクセス制御
     public List<Report> findReportsByCurrentUser(Employee currentUser) {

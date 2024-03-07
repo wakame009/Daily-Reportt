@@ -130,7 +130,7 @@ public class ReportController {
 
     // [日報] 削除処理
     @PostMapping(value = "/{id}/delete")
-    public String delete(@PathVariable Long id, @AuthenticationPrincipal UserDetail userDetail, Model model,  Principal principal) {
+    public String delete(@PathVariable Long id, @AuthenticationPrincipal UserDetail userDetail, Model model, Principal principal) {
         
         ErrorKinds result = reportService.delete(id, userDetail);
         

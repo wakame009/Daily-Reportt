@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 
 import com.techacademy.constants.ErrorKinds;
 import com.techacademy.entity.Employee;
+import com.techacademy.entity.Report;
 import com.techacademy.repository.EmployeeRepository;
+import com.techacademy.repository.ReportRepository;
 
 import io.micrometer.common.util.StringUtils;
 
@@ -25,11 +27,13 @@ public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ReportRepository reportRepository;
     
     @Autowired
-    public EmployeeService(EmployeeRepository employeeRepository, PasswordEncoder passwordEncoder) {
+    public EmployeeService(EmployeeRepository employeeRepository, PasswordEncoder passwordEncoder, ReportRepository reportRepository) {
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
+        this.reportRepository = reportRepository;
     }
 
     // 従業員保存
@@ -83,19 +87,41 @@ public class EmployeeService {
     // 従業員削除
     @Transactional
     public ErrorKinds delete(String code, UserDetail userDetail) {
-
+        
+        // 管理者権限のチェック
+        if (!userDetail.getEmployee().getRole().equals(Employee.Role.ADMIN)) {
+            return ErrorKinds.INPUT_ERROR;
+        }
+        
         // 自分を削除しようとした場合はエラーメッセージを表示
         if (code.equals(userDetail.getEmployee().getCode())) {
             return ErrorKinds.LOGINCHECK_ERROR;
         }
+        
+        // 従業員の存在確認チェック
         Employee employee = findByCode(code);
+        if (employee == null) {
+            return ErrorKinds.INPUT_ERROR;
+        }
+
+        // 該当従業員の日報を論理削除
+        List<Report> reports = reportRepository.findByEmployee(employee);
         LocalDateTime now = LocalDateTime.now();
-        employee.setUpdatedAt(now);
+        // 個々の日報を更新
+        for (Report report : reports) {
+            report.setDeleteFlg(true);
+            report.setUpdatedAt(now);
+            reportRepository.save(report);
+        }
+
+        // 従業員を論理削除
         employee.setDeleteFlg(true);
+        employee.setUpdatedAt(now);
+        employeeRepository.save(employee);
 
         return ErrorKinds.SUCCESS;
     }
-
+    
     // 従業員一覧表示処理
     public List<Employee> findAll() {
         return employeeRepository.findAll();
